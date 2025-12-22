@@ -25,6 +25,10 @@ const RoomSchema = new Schema({
         type: String,
         enum: ['Available', 'Occupied', 'Maintenance'],
         default: 'Available'
+    },
+    numberOfTimesBooked: {
+        type: Number,
+        default:0,
     }
 }, { timestamps: true })
 

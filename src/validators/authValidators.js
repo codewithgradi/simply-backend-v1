@@ -11,7 +11,6 @@ const createCompanySchema = z.object({
         min(8, "Password must be at least 8 characters long")
         .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
         .regex(/[0-9]/, 'Password must contain atleast one number'),
-    registrationNumber: z.string().regex(cipcRegex, "Invalid CIPC registration number").optional(),
     contactNumber: z.string().regex(/^(?:\+27|0)[6-8][0-9]{8}$/,"Invalid SA contact number")
     
 })

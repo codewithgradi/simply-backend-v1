@@ -1,43 +1,50 @@
 import { Company } from "../model/Company.js"
 import { Visitor } from "../model/Visitor.js"
 import bcrypt from "bcryptjs"
+import { z } from 'zod'
+import { passwordUpdateSchema } from "../validators/companyValidator.js";
+
 const updateExistingCompanyPassword = async (req, res) => {
-
-    const { companyId } = req.params
-    const { newPassword } = req.body
-
-    const salt = await bcrypt.genSalt(10)
-    const hashedPassword = await bcrypt.hash(newPassword, salt)
-    
     try {
-        if (companyId !== req.user._id.toString()) {
-             return res.status(403).json({
-            message:"Unauthorized: You may update on your company's details"})
-        }  
-        const updatedCompany = await Company.findOneAndUpdate(
-            {_id: companyId },
-            { password: hashedPassword },
-        )
-        res.status(200).json({
-            success: true,
-            data:updatedCompany,
-        })
-        
-    }catch (error) {
-        res.status(403).json({message:`Error while updating company pasword ${error.message}`})
-    }    
-}
- const updateCompanyProfile = async (req, res) => {
+        const validatedData = passwordUpdateSchema.parse(req.body);
+        const { oldPassword, newPassword } = validatedData;
+
+        const companyId = req.user._id;
+
+        const company = await Company.findById(companyId);
+        if (!company) {
+            return res.status(404).json({ message: "Company not found" });
+        }
+
+        const isMatch = await bcrypt.compare(oldPassword, company.password);
+        if (!isMatch) {
+            return res.status(400).json({ message: "Current password is incorrect" });
+        }
+
+        const salt = await bcrypt.genSalt(10);
+        company.password = await bcrypt.hash(newPassword, salt);
+        await company.save();
+
+        res.status(200).json({ success: true, message: "Password updated successfully" });
+
+    } catch (error) {
+        if (error instanceof z.ZodError) {
+            return res.status(400).json({ message: error.errors[0].message });
+        }
+        res.status(500).json({ message: `Error: ${error.message}` });
+    }
+};
+const updateCompanyProfile = async (req, res) => {
     try {
         // 1. Identify the company from the token 
         const companyId = req.user._id;
 
         const updates = req.body;
         //preventing user from updating these fields manualy
-        delete updates.password; 
+        delete updates.password;
         delete updates._id;
 
-        
+
         const updatedCompany = await Company.findByIdAndUpdate(
             companyId,
             updates,
@@ -67,49 +74,61 @@ const updateExistingCompanyPassword = async (req, res) => {
         });
     }
 };
-const getMyVisitors = async (req,res) => {
+const getMyVisitors = async (req, res) => {
     try {
 
         const visitors = await Visitor.find({ companyId: req.tenantId })
 
         return res.status(200).json({ success: true, data: visitors })
-        
+
     } catch (error) {
 
-        return res.status(200).json({ message:`Error while reading database: ${error.message}` })
+        return res.status(200).json({ message: `Error while reading database: ${error.message}` })
     }
 }
- const getCompanyProfile = async (req, res) => {
-    const company = req.user 
-    res.status(200).json({
-        success: true,
-        data: {
-            id: company._id,
-            name: company.companyName,
-            email: company.email,
-            registrationNumber: company.registrationNumber,
-            contactNumber: company.contactNumber,
-            createdAt: company.createdAt,
-            streeNumber: company.streeNumber,
-            streetName: company.streetName,
-            city: company.city,
-            country: company.country,
-            website: company.website,
-            isProfileComplete: company.isProfileComplete,
-            operatingHours:company.operatingHours
-        }
-    })
-}
-const softDeleteCompanyProfile = async (req, res) => {
-    const { companyId } = req.params
-    
+const getCompanyProfile = async (req, res) => {
     try {
-        const company = await Company.findByIdAndUpdate(companyId,{isDeleted:true})
+        const companyId = req.user._id;
+
+        const company = await Company.findById(companyId);
+
+        if (!company) {
+            return res.status(404).json({ success: false, message: "Company not found" });
+        }
+
+        res.status(200).json({
+            success: true,
+            data: {
+                id: company._id,
+                companyName: company.companyName,
+                email: company.email,
+                registrationNumber: company.registrationNumber,
+                contactNumber: company.contactNumber,
+                createdAt: company.createdAt,
+                streetNumber: company.streetNumber,
+                streetName: company.streetName,
+                city: company.city,
+                country: company.country,
+                website: company.website,
+                isProfileComplete: company.isProfileComplete,
+                operatingHours: company.operatingHours
+            }
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+};
+const softDeleteCompanyProfile = async (req, res) => {
+
+    const compaId = req.user?._id
+
+    try {
+        const company = await Company.findByIdAndUpdate(companyId, { isDeleted: true })
 
         if (!company) return res.status(403).json({ message: "Company not found" })
-        
-        res.status(201).json({message:"Company Profile was deleted"})
-        
+
+        res.status(201).json({ message: "Company Profile was deleted" })
+
     } catch (error) {
         console.error(`Error: ${error.message}`)
     }
@@ -133,18 +152,18 @@ const reactivateProfile = async (req, res) => {
         }
 
         const company = await Company.findByIdAndUpdate(
-            hasProfile._id, 
+            hasProfile._id,
             { isDeleted: false },
-            { new: true } 
+            { new: true }
         );
 
         if (!company) {
             return res.status(404).json({ message: "Company not found" });
         }
 
-        res.status(200).json({ 
-            success: true, 
-            message: "Company Profile has been restored" 
+        res.status(200).json({
+            success: true,
+            message: "Company Profile has been restored"
         });
 
     } catch (error) {
@@ -152,7 +171,7 @@ const reactivateProfile = async (req, res) => {
         res.status(500).json({ message: "Server error during reactivation" });
     }
 };
-export{
+export {
     updateExistingCompanyPassword,
     getMyVisitors,
     getCompanyProfile,

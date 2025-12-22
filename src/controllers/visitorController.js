@@ -58,7 +58,13 @@ const checkIn = async (req, res) => {
         const visitor = await Visitor.create(visitorData);
 
         // 3. Update Room Status
-        await Room.findByIdAndUpdate(room._id, { status: 'Occupied' });
+        await Room.findByIdAndUpdate(room._id,
+            {
+                $set: { status: 'Occupied' },
+                $inc:{numberOfTimesBooked:1}
+            },
+            {new:true}
+        );
 
         // 4. Create Notification
         await Notification.create({

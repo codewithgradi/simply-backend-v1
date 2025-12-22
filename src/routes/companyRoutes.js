@@ -18,13 +18,13 @@ router.use(setTenant)
 
 router.get('/', getMyVisitors)
 
-router.get('/profile',getCompanyProfile)
+router.get('/profile/',getCompanyProfile)
 
 router.put('/profile/', updateCompanyProfile)
 
-router.put('/profile/:companyId', validateRequest(passwordUpdateSchema), updateExistingCompanyPassword)
+router.put('/profile/password', validateRequest(passwordUpdateSchema), updateExistingCompanyPassword)
 
-router.put('/profile/delete/:companyId', softDeleteCompanyProfile)
+router.put('/profile/deactivate', softDeleteCompanyProfile)
 
 
 

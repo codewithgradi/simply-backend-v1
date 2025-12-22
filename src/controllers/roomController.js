@@ -135,8 +135,7 @@ const getAllRooms = async (req, res) => {
         // 1. Identify the company from the middleware (tenantId)
         const companyId = req.tenantId || req.user?.tenantId;
 
-        // 2. Query the ROOM collection (not Visitor)
-        // We filter by companyId to ensure users only see their own rooms
+        
         const rooms = await Room.find({ companyId: companyId }).sort({ roomNumber: 1 });
 
         // 3. Handle Empty State

@@ -1,59 +1,59 @@
 import pkg from 'whatsapp-web.js';
 const { Client, LocalAuth, MessageMedia } = pkg
-import qrcodeTerminal from 'qrcode-terminal';
+import QrCode from 'qrcode';
 
-import QRCode from 'qrcode';
-
-// Store all active business sessions here
 export const sessions = new Map();
+export const qrCache = new Map();
 
-/**
- * Initializes a unique WhatsApp session for a specific business
- */
-export const initBusinessSession = (companyId, io) => {
-    // If session already exists, don't recreate it
-    if (sessions.has(companyId)) return;
-
-    const client = new Client({
-        authStrategy: new LocalAuth({ 
-            clientId: companyId, // Unique folder for each business
-            dataPath: './sessions' 
-        }),
-        puppeteer: {
-        headless: true,
-        args: [
-            '--no-sandbox',
-            '--disable-setuid-sandbox',
-            '--disable-extensions',
-            '--disable-dev-shm-usage',
-            '--disable-accelerated-2d-canvas',
-            '--no-first-run',
-            '--no-zygote',
-            '--single-process', // This helps save a lot of RAM in Node environments
-            '--disable-gpu'
-        ],
+export const initBusinessSession = async (companyId, io) => {
+    // 1. Check if session exists and is alive
+    if (sessions.has(companyId)) {
+        const client = sessions.get(companyId);
+        try {
+            const state = await client.getState();
+            if (state === 'CONNECTED') {
+                return io.to(companyId).emit('whatsapp-status', 'CONNECTED');
+            }
+        } catch (e) {
+            sessions.delete(companyId); // Clear dead session
+        }
     }
+
+    // 2. If we have a cached QR, send it immediately to the room
+    if (qrCache.has(companyId)) {
+        io.to(companyId).emit('whatsapp-qr', qrCache.get(companyId));
+    }
+
+    // 3. Create new client if needed
+    const client = new Client({
+        authStrategy: new LocalAuth({ clientId: companyId }),
+        puppeteer: {
+            headless: true,
+            args: ['--no-sandbox', '--disable-setuid-sandbox']
+        }
     });
 
-    // Handle QR Code for the Website Dashboard
     client.on('qr', (qr) => {
-        console.log(`QR generated for ${companyId}`);
-
-        qrcodeTerminal.generate(qr, { small: true });
-
-        // Send the QR code to the business owner's browser via Socket.io
+        qrCache.set(companyId, qr); // Store QR
         io.to(companyId).emit('whatsapp-qr', qr);
+        console.log(`QR sent to room: ${companyId}`);
     });
 
     client.on('ready', () => {
-        console.log(`Business ${companyId} is ONLINE`);
+        qrCache.delete(companyId);
         sessions.set(companyId, client);
         io.to(companyId).emit('whatsapp-status', 'CONNECTED');
+        console.log(`WhatsApp Ready for: ${companyId}`);
     });
 
-    client.initialize();
-};
+    client.on('auth_failure', () => {
+        qrCache.delete(companyId);
+        sessions.delete(companyId);
+        io.to(companyId).emit('whatsapp-status', 'ERROR');
+    });
 
+    client.initialize().catch(err => console.error("Init error", err));
+};
 /**
  * Your sending function now needs to know WHICH business is sending
  */
