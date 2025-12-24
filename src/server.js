@@ -57,6 +57,7 @@ mongoose.connection.once('open', () => {
 
     // 2. Use "0.0.0.0" to ensure Render can see the service
     app.listen(PORT, "0.0.0.0", () => {
+        console.log("JWT Secret Loaded:", process.env.JWT_SECRET ? "YES" : "NO");
         // 3. Log the captured variable, not the raw env
         console.log(`Server is running on PORT ${PORT}`);
     });
