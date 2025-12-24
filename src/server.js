@@ -46,11 +46,18 @@ app.use('/api/sys', softwareRoutes)
 app.use('/api/stats', analyticsRoutes)
 // app.use('/api/feedback')
 
+
 //ENSURES WE ONLY LISTEN FOR REQUESTS WHEN WE ARE CONNECTED
 
 mongoose.connection.once('open', () => {
-    console.log("Connected to MongoDB")
-    app.listen(process.env.PORT || 5001, "0.0.0.0", () => {
-        console.log(`Server is running on PORT ${process.env.PORT}`)
-    })
-})
+    console.log("Connected to MongoDB");
+
+    // 1. Capture the port in a variable
+    const PORT = process.env.PORT || 5001;
+
+    // 2. Use "0.0.0.0" to ensure Render can see the service
+    app.listen(PORT, "0.0.0.0", () => {
+        // 3. Log the captured variable, not the raw env
+        console.log(`Server is running on PORT ${PORT}`);
+    });
+});
