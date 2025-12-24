@@ -1,14 +1,22 @@
 import {Visitor} from '../model/Visitor.js'
 import crypto from 'crypto'
 import { nanoid } from 'nanoid';
-import { sendVisitorWhatsApp } from '../services/sendWhatApp.js';
 import { Room } from '../model/Room.js';
-import {Notification} from '../model/Notification.js'
+import { Notification } from '../model/Notification.js'
+import { sendVisitorEmail } from '../utils/emailService.js';
+
 //VISTOR CHECK IN LOGIC
 const checkIn = async (req, res) => {
     
     // 1. Destructure roomNumber out, and put everything else in 'otherData'
-    const { idNumber, firstName, lastName, phoneNumber, companyId, roomNumber, ...otherData } = req.body;
+    const { idNumber,
+        firstName,
+        lastName,
+        email,
+        phoneNumber,
+        companyId,
+        roomNumber,
+        ...otherData } = req.body;
     
     if (!companyId) {
         return res.status(412).json({ 
@@ -40,6 +48,9 @@ const checkIn = async (req, res) => {
                 message: `Room ${roomNumber} could not be found for this business.`
             });
         }
+        const notRoomAvailable = await Room.findOne({ roomNumber, companyId, status: 'Occupied' })
+        
+        if (notRoomAvailable) return res.status(403).json({ success: false, message: 'Room is occupied' })
         
         const passCode = nanoid(20);
 
@@ -48,6 +59,7 @@ const checkIn = async (req, res) => {
             firstName,
             lastName,
             phoneNumber,
+            email,
             companyId,
             roomId: room._id,
             passCode, 
@@ -73,16 +85,12 @@ const checkIn = async (req, res) => {
             isRead: false
         });
 
-        try {
-            sendVisitorWhatsApp(companyId, phoneNumber, firstName, passCode);
-        } catch(err) {
-            console.error("WhatsApp Error:", err.message);
-        }
+       sendVisitorEmail(email, firstName, roomNumber, passCode);
 
         res.status(201).json({
             success: true,
             data: visitor,
-            message: 'Pass sent to your Whatsapp'
+            message: 'Pass sent to your email'
         });
 
     } catch (error) {

@@ -3,7 +3,8 @@ import {
     getCompanyProfile, getMyVisitors,
     updateExistingCompanyPassword,
     updateCompanyProfile,
-    softDeleteCompanyProfile
+    softDeleteCompanyProfile,
+    
 } from '../controllers/companyController.js'
 import { authCompanyMiddleware } from '../middlewares/authMiddleware.js'
 import { setTenant } from '../middlewares/tenantMiddleware.js'
@@ -13,7 +14,10 @@ import {validateRequest} from '../middlewares/validateRequest.js'
 
 const router = express.Router()
 
+
 router.use(authCompanyMiddleware)
+
+
 router.use(setTenant)
 
 router.get('/', getMyVisitors)
@@ -25,6 +29,7 @@ router.put('/profile/', updateCompanyProfile)
 router.put('/profile/password', validateRequest(passwordUpdateSchema), updateExistingCompanyPassword)
 
 router.put('/profile/deactivate', softDeleteCompanyProfile)
+
 
 
 

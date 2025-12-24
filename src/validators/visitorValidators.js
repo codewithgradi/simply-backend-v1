@@ -10,7 +10,8 @@ import { z } from 'zod';
     reasonForVisit: z.enum(['Delivery', 'Meeting', 'Maintenance', 'Personal']),
    gender: z.enum(["MALE", "FEMALE", "OTHER"]),
    companyId: z.string(),
-   roomNumber:z.string()
+   roomNumber:z.string(),
+   email:z.string('Email is required')
  });
 
  export {visitorSchema}

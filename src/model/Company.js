@@ -18,7 +18,7 @@ const companySchema = new Schema({
         type: String,
         required: [true,"Password is required"],
         trim: true,
-        selcect:false,
+        select:false,
     },
     registrationNumber: {type:String},// e.g., CIPC number for SA companies
 

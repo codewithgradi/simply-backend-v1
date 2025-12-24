@@ -99,7 +99,7 @@ const getCompanyProfile = async (req, res) => {
         res.status(200).json({
             success: true,
             data: {
-                id: company._id,
+                id: company._id || companyId,
                 companyName: company.companyName,
                 email: company.email,
                 registrationNumber: company.registrationNumber,
@@ -120,7 +120,7 @@ const getCompanyProfile = async (req, res) => {
 };
 const softDeleteCompanyProfile = async (req, res) => {
 
-    const compaId = req.user?._id
+    const companyId = req.user?._id
 
     try {
         const company = await Company.findByIdAndUpdate(companyId, { isDeleted: true })

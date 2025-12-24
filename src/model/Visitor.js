@@ -34,6 +34,10 @@ const visitorSchema = new Schema({
         type: String,
         required: [true, "Phone number is required"],
     },
+    email: {
+        type: String,
+        required: [true, "Email number is required"],
+    },
     reasonForVisit: {
         type: String,
         enum: ['Delivery', 'Meeting', 'Maintenance', 'Personal'],
