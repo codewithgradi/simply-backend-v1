@@ -13,7 +13,11 @@ import mongoose from 'mongoose';
 import softwareRoutes from './routes/softwareRoutes.js'
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
+<<<<<<< HEAD
 // import feedbackRoutes from './routes/feedbackRoutes.js';
+=======
+import feedbackRoutes from './routes/feedbackRoutes.js';
+>>>>>>> e2ac4afa1923cc11e82ba06b6967f4ad2e82f0d4
 // import { verifyConnection} from './emailConfig.js';
 
 const app = express();
@@ -44,12 +48,16 @@ app.use('/api/rooms', roomRoutes)
 app.use('/api/notification', notificationRoutes)
 app.use('/api/sys', softwareRoutes)
 app.use('/api/stats', analyticsRoutes)
+<<<<<<< HEAD
 app.get('/', (req, res) => res.send("Check-in API is live on Vercel"));
+=======
+>>>>>>> e2ac4afa1923cc11e82ba06b6967f4ad2e82f0d4
 // app.use('/api/feedback')
 
 
 //ENSURES WE ONLY LISTEN FOR REQUESTS WHEN WE ARE CONNECTED
 
+<<<<<<< HEAD
 // mongoose.connection.once('open', () => {
 //     console.log("Connected to MongoDB");
 
@@ -66,3 +74,18 @@ app.get('/', (req, res) => res.send("Check-in API is live on Vercel"));
 
 
 export default app
+=======
+mongoose.connection.once('open', () => {
+    console.log("Connected to MongoDB");
+
+    // 1. Capture the port in a variable
+    const PORT = process.env.PORT || 5001;
+
+    // 2. Use "0.0.0.0" to ensure Render can see the service
+    app.listen(PORT, "0.0.0.0", () => {
+        console.log("JWT Secret Loaded:", process.env.JWT_SECRET ? "YES" : "NO");
+        // 3. Log the captured variable, not the raw env
+        console.log(`Server is running on PORT ${PORT}`);
+    });
+});
+>>>>>>> e2ac4afa1923cc11e82ba06b6967f4ad2e82f0d4
