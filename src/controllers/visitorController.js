@@ -48,9 +48,9 @@ const checkIn = async (req, res) => {
                 message: `Room ${roomNumber} could not be found for this business.`
             });
         }
-        const notRoomAvailable = await Room.findOne({ roomNumber, companyId, status: 'Occupied' })
+        const RoomAvailable = await Room.findOne({ roomNumber, companyId, status: 'Available' })
         
-        if (notRoomAvailable) return res.status(403).json({ success: false, message: 'Room is occupied' })
+        if (!RoomAvailable) return res.status(403).json({ success: false, message: 'Room is not available' })
         
         const passCode = nanoid(20);
 
