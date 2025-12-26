@@ -85,28 +85,16 @@ const checkIn = async (req, res) => {
             isRead: false
         });
 
-<<<<<<< HEAD
        const result = await sendVisitorEmail(email, firstName, roomNumber, passCode);
     
         if (result) {
-            res.status(201).json({
-=======
-       sendVisitorEmail(email, firstName, roomNumber, passCode);
-
-        res.status(201).json({
->>>>>>> e2ac4afa1923cc11e82ba06b6967f4ad2e82f0d4
-            success: true,
-            data: visitor,
-            message: 'Pass sent to your email'
-        });
-<<<<<<< HEAD
+            // ONLY send response after email is finished
+            res.status(200).json({ success: true });
         } else {
             res.status(500).json({ error: "Email failed" });
         }
 
        
-=======
->>>>>>> e2ac4afa1923cc11e82ba06b6967f4ad2e82f0d4
 
     } catch (error) {
         console.error("Check-in Error:", error);
